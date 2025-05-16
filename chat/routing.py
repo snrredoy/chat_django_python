@@ -1,5 +1,5 @@
 from django.urls import path
-from channels_practice.consumers import ConsumerSync, ConsumerAsync
+from chat.consumers import ConsumerSync, ConsumerAsync
 
 websocket_urlpatterns = [
     path('wc/sc/', ConsumerSync.as_asgi()),

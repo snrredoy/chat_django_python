@@ -4,5 +4,5 @@ from django.shortcuts import render
 def home(request):
     return render(request, 'chat/index.html')
 
-def room(request):
-    return render(request, 'chat/room.html')
+def room(request, roomName):
+    return render(request, 'chat/room.html', {'roomName': roomName})

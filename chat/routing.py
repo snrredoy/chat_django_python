@@ -2,6 +2,6 @@ from django.urls import path
 from chat.consumers import ConsumerSync, ConsumerAsync
 
 websocket_urlpatterns = [
-    path('wc/sc/', ConsumerSync.as_asgi()),
-    path('wc/ac/', ConsumerAsync.as_asgi()),
+    path('ws/sc/<str:roomName>/', ConsumerSync.as_asgi()),
+    path('ws/ac/<str:roomName>/', ConsumerAsync.as_asgi()),
 ]

@@ -1,4 +1,4 @@
-<!-- chat/templates/chat/room.html -->
+<!-- chat/templates/chat/room.html
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,12 +6,22 @@
     <title>Chat Room</title>
 </head>
 <body>
+
+    <h1>Room name: {{ roomName }}</h1>
     <textarea id="chat-log" cols="100" rows="20"></textarea><br>
     <input id="chat-message-input" type="text" size="100"><br>
     <input id="chat-message-submit" type="button" value="Send">
-    {{ room_name|json_script:"room-name" }}
+    {{ roomName|json_script:"room-name" }}
     <script>
-        const chatSocket = new WebSocket('ws://127.0.0.1:8000/wc/sc/');
+        const roomName = JSON.parse(document.getElementById('room-name').textContent);
+
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/sc/'
+            + roomName
+            + '/'
+        );
 
         chatSocket.onopen = function (){
             console.log("Websocket connection open")
@@ -36,6 +46,96 @@
             }));
             user_input.value =''
         }
+    </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Chat Room</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-200 h-screen flex flex-col">
+    <div class="flex-1 flex flex-col max-w-2xl mx-auto w-full p-4">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">Room: {{ roomName }}</h1>
+        <div id="chat-container" class="flex-1 bg-white rounded-lg shadow-md p-4 overflow-y-auto mb-4 flex flex-col gap-4">
+            <!-- Messages will be appended here -->
+        </div>
+        <div class="flex gap-2">
+            <input id="chat-message-input" type="text" class="flex-1 p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type your message...">
+            <button id="chat-message-submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Send</button>
+        </div>
+    </div>
+    {{ roomName|json_script:"room-name" }}
+    <script>
+        const roomName = JSON.parse(document.getElementById('room-name').textContent);
+        const currentUser = roomName; // Current user is roomName; ideally from auth
+
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/sc/'
+            + roomName
+            + '/'
+        );
+
+        chatSocket.onopen = function() {
+            console.log("Websocket connection open");
+        };
+
+        chatSocket.onmessage = function(e) {
+            console.log("Message received from server", e);
+            const data = JSON.parse(e.data);
+            const chatContainer = document.querySelector('#chat-container');
+            
+            const messageDiv = document.createElement('div');
+            const isCurrentUser = data.username === currentUser;
+            messageDiv.className = `flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`;
+            messageDiv.innerHTML = `
+                <div class="${isCurrentUser ? 'bg-green-200' : 'bg-gray-300'} 
+                    rounded-lg px-3 py-2 max-w-xs sm:max-w-md break-words">
+                    <p class="text-gray-800">${data.message}</p>
+                    <p class="text-xs mt-1 text-gray-600">${data.username} • Fri, May 16, 2025, 03:48 PM +06</p>
+                </div>
+            `;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.getElementById('chat-message-submit').onclick = function(event) {
+            const userInput = document.getElementById('chat-message-input');
+            const message = userInput.value.trim();
+            if (message) {
+                chatSocket.send(JSON.stringify({
+                    'message': message,
+                    'username': currentUser
+                }));
+                userInput.value = '';
+            }
+        };
+
+        document.getElementById('chat-message-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const userInput = document.getElementById('chat-message-input');
+                const message = userInput.value.trim();
+                if (message) {
+                    chatSocket.send(JSON.stringify({
+                        'message': message,
+                        'username': currentUser
+                    }));
+                    userInput.value = '';
+                }
+            }
+        });
+
     </script>
 </body>
 </html>

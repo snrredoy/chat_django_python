@@ -8,8 +8,9 @@ class ConsumerSync(SyncConsumer):
         print("Websocket Sync connected....", event)
         print("Channel layer...", [self.channel_layer])
         print("Channel name...", [self.channel_name])
+        self.roomName = self.scope['url_route']['kwargs']['roomName']
         async_to_sync(self.channel_layer.group_add)(
-            'p',
+            self.roomName,
             self.channel_name
         )
         self.send({
@@ -19,7 +20,7 @@ class ConsumerSync(SyncConsumer):
     def websocket_receive(self, event):
         print("Websocket Sync Received...", event['text'])
         async_to_sync(self.channel_layer.group_send)(
-            'p',
+            self.roomName,
             {
                 'type': 'chat.message',
                 'message': event['text']
@@ -38,7 +39,7 @@ class ConsumerSync(SyncConsumer):
         print("Channel layer...", [self.channel_layer])
         print("Channel name...", [self.channel_name])
         async_to_sync(self.channel_layer.group_discard)(
-            'p',
+            self.roomName,
             self.channel_name,
         )
         raise StopConsumer()

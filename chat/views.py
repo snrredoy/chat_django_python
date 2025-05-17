@@ -6,14 +6,16 @@ def home(request):
     return render(request, 'chat/index.html')
 
 def room(request, roomName):
+    user = request.user
     chats = []
     room = Group.objects.filter(name=roomName).first()
-    if room:
-        chats = Chat.objects.filter(group=room)
-    else:
-        Group.objects.create(
-            name = roomName
-        )
+    if not room:
+        Group.objects.create(name = roomName)
+    
+    if user.is_authenticated:
+        room.member.add(user)
+
+    chats = Chat.objects.filter(group=room)
 
     context = {
         'roomName': roomName,

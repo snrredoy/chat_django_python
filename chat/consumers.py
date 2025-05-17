@@ -7,9 +7,6 @@ from .models import Group, Chat
 import json
 class ConsumerSync(SyncConsumer):
     def websocket_connect(self, event):
-        print("Websocket Sync connected....", event)
-        print("Channel layer...", [self.channel_layer])
-        print("Channel name...", [self.channel_name])
         self.roomName = self.scope['url_route']['kwargs']['roomName']
         async_to_sync(self.channel_layer.group_add)(
             self.roomName,
@@ -20,20 +17,26 @@ class ConsumerSync(SyncConsumer):
         })
 
     def websocket_receive(self, event):
-        print("Websocket Sync Received...", event['text'])
         data = json.loads(event['text'])
         room = Group.objects.get(name = self.roomName)
-        Chat.objects.create(
-            content = data['message'],
-            group = room
-        )
-        async_to_sync(self.channel_layer.group_send)(
-            self.roomName,
-            {
-                'type': 'chat.message',
-                'message': event['text']
-            }
-        )
+        if self.scope['user'].is_authenticated:
+            Chat.objects.create(
+                sender = self.scope['user'],
+                content = data['message'],
+                group = room
+            )
+            async_to_sync(self.channel_layer.group_send)(
+                self.roomName,
+                {
+                    'type': 'chat.message',
+                    'message': event['text']
+                }
+            )
+        else:
+            self.send({
+                'type' : 'websocket.send',
+                'text': json.dumps({'message': 'Login Required'})
+            })
     
     def chat_message(self, event):
         msg = event['message']
@@ -43,9 +46,6 @@ class ConsumerSync(SyncConsumer):
         })
     
     def websocket_disconnect(self, event):
-        print("Websocket Sync Disconnect...", event)
-        print("Channel layer...", [self.channel_layer])
-        print("Channel name...", [self.channel_name])
         async_to_sync(self.channel_layer.group_discard)(
             self.roomName,
             self.channel_name,
@@ -54,13 +54,11 @@ class ConsumerSync(SyncConsumer):
     
 class ConsumerAsync(AsyncConsumer):
     async def websocket_connect(self, event):
-        print('Websocket Async connect...', event)
         await self.send({
             'type': 'websocket.accept'
         })
 
     async def websocket_receive(self, event):
-        print('Websocket Async receive...', event)
         for i in range(20):
             await self.send({
                 'type': 'websocket.send',
@@ -69,5 +67,4 @@ class ConsumerAsync(AsyncConsumer):
             await asyncio.sleep(1)
 
     async def websocket_disconnect(self, event):
-        print('Websocket Async disconnect...', event)
         raise StopConsumer()

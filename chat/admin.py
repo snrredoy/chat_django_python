@@ -13,7 +13,7 @@ class GroupAdmin(admin.ModelAdmin):
 
 @admin.register(Chat)
 class ChatAdmin(admin.ModelAdmin):
-    list_display = ('id', 'content_text', 'created_at',)
+    list_display = ('id', 'content_text', 'sender', 'receiver', 'group', 'created_at',)
     list_display_links = ('id', 'content_text')
 
     def content_text(self, obj):

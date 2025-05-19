@@ -16,35 +16,80 @@ class ConsumerSync(SyncConsumer):
             'type': 'websocket.accept'
         })
 
+    # def websocket_receive(self, event):
+    #     data = json.loads(event['text'])
+    #     room = Group.objects.get(name = self.roomName)
+    #     if self.scope['user'].is_authenticated:
+    #         Chat.objects.create(
+    #             sender = self.scope['user'],
+    #             content = data['message'],
+    #             group = room
+    #         )
+    #         async_to_sync(self.channel_layer.group_send)(
+    #             self.roomName,
+    #             {
+    #                 'type': 'chat.message',
+    #                 'message': event['text'],
+    #                 'full_name': f'{self.scope['user'].first_name} {self.scope['user'].last_name}'
+    #             }
+    #         )
+    #     else:
+    #         self.send({
+    #             'type' : 'websocket.send',
+    #             'text': json.dumps({
+    #                 'message': 'Login Required'
+    #                 })
+    #         })
+    
+    # def chat_message(self, event):
+    #     msg = event['message']
+    #     self.send({
+    #         'type': 'websocket.send',
+    #         'text': json.dumps({
+    #             'message': event['message'],
+    #             'full_name': event['full_name']
+    #         })
+    #     })
+    
     def websocket_receive(self, event):
         data = json.loads(event['text'])
-        room = Group.objects.get(name = self.roomName)
+        room = Group.objects.get(name=self.roomName)
         if self.scope['user'].is_authenticated:
-            Chat.objects.create(
-                sender = self.scope['user'],
-                content = data['message'],
-                group = room
+            chat = Chat.objects.create(
+                sender=self.scope['user'],
+                content=data['message'],
+                group=room
             )
+            full_name = f"{self.scope['user'].first_name} {self.scope['user'].last_name}".strip() or self.scope['user'].username
             async_to_sync(self.channel_layer.group_send)(
                 self.roomName,
                 {
                     'type': 'chat.message',
-                    'message': event['text']
+                    'message': data['message'],
+                    'username': self.scope['user'].username,
+                    'full_name': full_name,
+                    'created_at': chat.created_at.isoformat()  # Send the creation timestamp
                 }
             )
         else:
             self.send({
-                'type' : 'websocket.send',
+                'type': 'websocket.send',
                 'text': json.dumps({'message': 'Login Required'})
             })
     
     def chat_message(self, event):
-        msg = event['message']
         self.send({
             'type': 'websocket.send',
-            'text': event['message']
+            'text': json.dumps({
+                'message': event['message'],
+                'username': event['username'],
+                'full_name': event['full_name'],
+                'created_at': event['created_at']
+            })
         })
-    
+
+
+
     def websocket_disconnect(self, event):
         async_to_sync(self.channel_layer.group_discard)(
             self.roomName,

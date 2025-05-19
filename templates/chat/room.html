@@ -1,126 +1,3 @@
-<!-- <!-- <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8"/>
-    <title>Chat Room</title>
-</head>
-<body>
-
-    <h1>Room name: {{ roomName }}</h1>
-    <textarea id="chat-log" cols="100" rows="20">
-        {% for chat in chats %}
-            {{ chat.content }}
-        {% endfor %}
-    </textarea><br>
-    <input id="chat-message-input" type="text" size="100"><br>
-    <input id="chat-message-submit" type="button" value="Send">
-    {{ roomName|json_script:"room-name" }}
-
-        <script>
-        const roomName = JSON.parse(document.getElementById('room-name').textContent);
-        const currentUser = roomName; // Current user is roomName; ideally from auth
-
-        const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/sc/'
-            + roomName
-            + '/'
-        );
-
-        chatSocket.onopen = function() {
-            console.log("Websocket connection open");
-        };
-
-        chatSocket.onmessage = function(e) {
-            console.log("Message received from server", e);
-            const data = JSON.parse(e.data);
-            const chatContainer = document.querySelector('#chat-container');
-            
-            const messageDiv = document.createElement('div');
-            const isCurrentUser = data.username === currentUser;
-            messageDiv.className = `flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`;
-            messageDiv.innerHTML = `
-                <div class="${isCurrentUser ? 'bg-green-200' : 'bg-gray-300'} 
-                    rounded-lg px-3 py-2 max-w-xs sm:max-w-md break-words">
-                    <p class="text-gray-800">${data.message}</p>
-                </div>
-            `;
-            chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        };
-
-        chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
-        };
-
-        document.getElementById('chat-message-submit').onclick = function(event) {
-            const userInput = document.getElementById('chat-message-input');
-            const message = userInput.value.trim();
-            if (message) {
-                chatSocket.send(JSON.stringify({
-                    'message': message,
-                    'username': currentUser
-                }));
-                userInput.value = '';
-            }
-        };
-
-        document.getElementById('chat-message-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                const userInput = document.getElementById('chat-message-input');
-                const message = userInput.value.trim();
-                if (message) {
-                    chatSocket.send(JSON.stringify({
-                        'message': message,
-                        'username': currentUser
-                    }));
-                    userInput.value = '';
-                }
-            }
-        });
-    </script>
-    <script>
-
-        const roomName = JSON.parse(document.getElementById('room-name').textContent);
-
-        const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/sc/'
-            + roomName
-            + '/'
-        );
-
-        chatSocket.onopen = function (){
-            console.log("Websocket connection open")
-        }
-
-        chatSocket.onmessage = function(e) {
-            console.log("Message received from server", e)
-            const data = JSON.parse(e.data)
-            document.querySelector('#chat-log').value += (data.message + '\n')
-        };
-
-        chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
-        };
-
-        document.getElementById('chat-message-submit').onclick = 
-        function(event){
-            const user_input = document.getElementById('chat-message-input')
-            const mess = user_input.value
-            chatSocket.send(JSON.stringify({
-                'message': mess
-            }));
-            user_input.value =''
-        }
-    </script>
-</body>
-</html> -->
-
-
 <!-- <!DOCTYPE html>
 <html>
 <head>
@@ -132,103 +9,14 @@
     <div class="flex-1 flex flex-col max-w-2xl mx-auto w-full p-4">
         <h1 class="text-2xl font-bold text-gray-800 mb-4">Room: {{ roomName }}</h1>
         <div id="chat-container" class="flex-1 bg-white rounded-lg shadow-md p-4 overflow-y-auto mb-4 flex flex-col gap-4">
-            Messages will be appended here
             {% for chat in chats %}
-                {{ chat.content }}
-            {% endfor %}
-        </div>
-        <div class="flex gap-2">
-            <input id="chat-message-input" type="text" class="flex-1 p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type your message...">
-            <button id="chat-message-submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Send</button>
-        </div>
-    </div>
-    {{ roomName|json_script:"room-name" }}
-    <script>
-        const roomName = JSON.parse(document.getElementById('room-name').textContent);
-        const currentUser = roomName; // Current user is roomName; ideally from auth
-
-        const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/sc/'
-            + roomName
-            + '/'
-        );
-
-        chatSocket.onopen = function() {
-            console.log("Websocket connection open");
-        };
-
-        chatSocket.onmessage = function(e) {
-            console.log("Message received from server", e);
-            const data = JSON.parse(e.data);
-            const chatContainer = document.querySelector('#chat-container');
-            
-            const messageDiv = document.createElement('div');
-            const isCurrentUser = data.username === currentUser;
-            messageDiv.className = `flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`;
-            messageDiv.innerHTML = `
-                <div class="${isCurrentUser ? 'bg-green-200' : 'bg-gray-300'} 
-                    rounded-lg px-3 py-2 max-w-xs sm:max-w-md break-words">
-                    <p class="text-gray-800">${data.message}</p>
-                </div>
-            `;
-            chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        };
-
-        chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
-        };
-
-        document.getElementById('chat-message-submit').onclick = function(event) {
-            const userInput = document.getElementById('chat-message-input');
-            const message = userInput.value.trim();
-            if (message) {
-                chatSocket.send(JSON.stringify({
-                    'message': message,
-                    'username': currentUser
-                }));
-                userInput.value = '';
-            }
-        };
-
-        document.getElementById('chat-message-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                const userInput = document.getElementById('chat-message-input');
-                const message = userInput.value.trim();
-                if (message) {
-                    chatSocket.send(JSON.stringify({
-                        'message': message,
-                        'username': currentUser
-                    }));
-                    userInput.value = '';
-                }
-            }
-        });
-
-    </script>
-</body>
-</html> -->
-
-
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8"/>
-    <title>Chat Room</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-200 h-screen flex flex-col">
-    <div class="flex-1 flex flex-col max-w-2xl mx-auto w-full p-4">
-        <h1 class="text-2xl font-bold text-gray-800 mb-4">Room: {{ roomName }}</h1>
-        <div id="chat-container" class="flex-1 bg-white rounded-lg shadow-md p-4 overflow-y-auto mb-4 flex flex-col gap-4">
-            {% for chat in chats %}
-                <div class="flex {% if chat.username == roomName %}justify-end{% else %}justify-start{% endif %}">
-                    <div class="{% if chat.username == roomName %}bg-green-200{% else %}bg-gray-300{% endif %} 
+                <div class="flex {% if chat.sender.username == user.username %}justify-end{% else %}justify-start{% endif %}">
+                    <div class="{% if chat.sender.username == user.username %}bg-green-200{% else %}bg-gray-300{% endif %} 
                         rounded-lg px-3 py-2 max-w-xs sm:max-w-md break-words">
                         <p class="text-gray-800">{{ chat.content }}</p>
+                        <p class="text-xs mt-1 text-gray-600">
+                            {{ chat.sender.first_name|default:'' }} {{ chat.sender.last_name|default:chat.sender.username }} • {{ chat.created_at|date:"D, M d, Y, h:i A" }}
+                        </p>
                     </div>
                 </div>
             {% endfor %}
@@ -240,9 +28,12 @@
         <a href="#" id="show-previous" class="text-blue-500 mt-2 text-center">Show Previous Message!</a>
     </div>
     {{ roomName|json_script:"room-name" }}
+    {{ user.username|json_script:"current-user" }}
+    {{ user.get_full_name|json_script:"current-full-name" }}
     <script>
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
-        const currentUser = roomName; 
+        const currentUser = JSON.parse(document.getElementById('current-user').textContent);
+        const currentFullName = JSON.parse(document.getElementById('current-full-name').textContent);
 
         const chatSocket = new WebSocket(
             'ws://'
@@ -263,11 +54,22 @@
             
             const messageDiv = document.createElement('div');
             const isCurrentUser = data.username === currentUser;
+            const createdAt = new Date(data.created_at).toLocaleString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+            }).replace('GMT', '');
+            
             messageDiv.className = `flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`;
             messageDiv.innerHTML = `
                 <div class="${isCurrentUser ? 'bg-green-200' : 'bg-gray-300'} 
                     rounded-lg px-3 py-2 max-w-xs sm:max-w-md break-words">
                     <p class="text-gray-800">${data.message}</p>
+                    <p class="text-xs mt-1 text-gray-600">${data.full_name || 'undefined'} • ${createdAt}</p>
                 </div>
             `;
             chatContainer.appendChild(messageDiv);
@@ -284,7 +86,8 @@
             if (message) {
                 chatSocket.send(JSON.stringify({
                     'message': message,
-                    'username': currentUser
+                    'username': currentUser,
+                    'full_name': currentFullName
                 }));
                 userInput.value = '';
             }
@@ -298,13 +101,150 @@
                 if (message) {
                     chatSocket.send(JSON.stringify({
                         'message': message,
-                        'username': currentUser
+                        'username': currentUser,
+                        'full_name': currentFullName
                     }));
                     userInput.value = '';
                 }
             }
         });
 
+        document.getElementById('show-previous').onclick = function(e) {
+            e.preventDefault();
+            console.log("Show previous messages functionality to be implemented");
+        };
+    </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Chat Room</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Ensure only the chat container scrolls */
+        #chat-container {
+            overflow-y: auto;
+            max-height: calc(100vh - 200px); /* Adjust based on header, input, and padding */
+        }
+        body {
+            overflow-y: hidden; /* Prevent full page scrolling */
+        }
+    </style>
+</head>
+<body class="bg-gray-200 h-screen flex flex-col">
+    <div class="flex-1 flex flex-col max-w-2xl mx-auto w-full p-4">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">Room: {{ roomName }}</h1>
+        <div id="chat-container" class="flex-1 bg-white rounded-lg shadow-md p-4 flex flex-col gap-4">
+            {% for chat in chats %}
+                <div class="flex {% if chat.sender.username == user.username %}justify-end{% else %}justify-start{% endif %}">
+                    <div class="{% if chat.sender.username == user.username %}bg-green-200{% else %}bg-gray-300{% endif %} 
+                        rounded-lg px-3 py-2 max-w-xs sm:max-w-md break-words">
+                        <p class="text-gray-800">{{ chat.content }}</p>
+                        <p class="text-xs mt-1 text-gray-600">
+                            {{ chat.sender.first_name|default:'' }} {{ chat.sender.last_name|default:chat.sender.username }} • {{ chat.created_at|date:"D, M d, Y, h:i A O" }}
+                        </p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="flex gap-2 mt-4">
+            <input id="chat-message-input" type="text" class="flex-1 p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type your message...">
+            <button id="chat-message-submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Send</button>
+        </div>
+        <a href="#" id="show-previous" class="text-blue-500 mt-2 text-center">Show Previous Message!</a>
+    </div>
+    {{ roomName|json_script:"room-name" }}
+    {{ user.username|json_script:"current-user" }}
+    {{ user.get_full_name|json_script:"current-full-name" }}
+    <script>
+        const roomName = JSON.parse(document.getElementById('room-name').textContent);
+        const currentUser = JSON.parse(document.getElementById('current-user').textContent);
+        const currentFullName = JSON.parse(document.getElementById('current-full-name').textContent);
+
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/sc/'
+            + roomName
+            + '/'
+        );
+
+        chatSocket.onopen = function() {
+            console.log("Websocket connection open");
+        };
+
+        chatSocket.onmessage = function(e) {
+            console.log("Message received from server", e);
+            const data = JSON.parse(e.data);
+            const chatContainer = document.querySelector('#chat-container');
+            
+            const messageDiv = document.createElement('div');
+            const isCurrentUser = data.username === currentUser;
+            const createdAt = new Date(data.created_at).toLocaleString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+                timeZoneName: 'short'
+            }).replace('GMT', '');
+            
+            messageDiv.className = `flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`;
+            messageDiv.innerHTML = `
+                <div class="${isCurrentUser ? 'bg-green-200' : 'bg-gray-300'} 
+                    rounded-lg px-3 py-2 max-w-xs sm:max-w-md break-words">
+                    <p class="text-gray-800">${data.message}</p>
+                    <p class="text-xs mt-1 text-gray-600">${data.full_name || 'undefined'} • ${createdAt}</p>
+                </div>
+            `;
+            chatContainer.appendChild(messageDiv);
+            // Always scroll to the bottom for new messages
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.getElementById('chat-message-submit').onclick = function(event) {
+            const userInput = document.getElementById('chat-message-input');
+            const message = userInput.value.trim();
+            if (message) {
+                chatSocket.send(JSON.stringify({
+                    'message': message,
+                    'username': currentUser,
+                    'full_name': currentFullName
+                }));
+                userInput.value = '';
+            }
+        };
+
+        document.getElementById('chat-message-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const userInput = document.getElementById('chat-message-input');
+                const message = userInput.value.trim();
+                if (message) {
+                    chatSocket.send(JSON.stringify({
+                        'message': message,
+                        'username': currentUser,
+                        'full_name': currentFullName
+                    }));
+                    userInput.value = '';
+                }
+            }
+        });
+
+        document.getElementById('show-previous').onclick = function(e) {
+            e.preventDefault();
+            console.log("Show previous messages functionality to be implemented");
+        };
     </script>
 </body>
 </html>
